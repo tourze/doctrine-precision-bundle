@@ -47,7 +47,7 @@ class PrecisionListener
             if (Types::DECIMAL === $ormColumn->type && isset($cm->fieldMappings[$name])) {
                 $precisionColumn = $property->getAttributes(PrecisionColumn::class);
                 if ($precisionColumn) {
-                    $cm->fieldMappings[$name]['scale'] = $_ENV['DEFAULT_PRICE_PRECISION'] ?? 2;
+                    $cm->fieldMappings[$name]['scale'] = intval($_ENV['DEFAULT_PRICE_PRECISION'] ?? 2);
                 }
             }
         }
