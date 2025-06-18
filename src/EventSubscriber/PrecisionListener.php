@@ -35,7 +35,7 @@ class PrecisionListener
             $ormColumn = $ormColumn[0]->newInstance();
             /** @var ORM\Column $ormColumn */
             $name = $ormColumn->name;
-            if (!$name) {
+            if ($name === null || $name === '') {
                 $name = $property->getName();
                 $name = $this->inflector->toSnakeCase($name);
             }
@@ -46,7 +46,7 @@ class PrecisionListener
             // 特别处理一次带精度的字段
             if (Types::DECIMAL === $ormColumn->type && isset($cm->fieldMappings[$name])) {
                 $precisionColumn = $property->getAttributes(PrecisionColumn::class);
-                if ($precisionColumn) {
+                if (!empty($precisionColumn)) {
                     $cm->fieldMappings[$name]['scale'] = intval($_ENV['DEFAULT_PRICE_PRECISION'] ?? 2);
                 }
             }
