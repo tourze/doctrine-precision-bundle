@@ -1,6 +1,6 @@
 <?php
 
-namespace Tourze\DoctrinePrecisionBundle\Tests\Fixture;
+namespace Tourze\DoctrinePrecisionBundle\Tests\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
