@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\DoctrinePrecisionBundle\EventSubscriber;
 
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
@@ -16,10 +18,10 @@ use Yiisoft\Strings\Inflector;
  * @see https://alexkunin.medium.com/doctrine-symfony-adding-indexes-to-fields-defined-in-traits-a8e480af66b2
  */
 #[AsDoctrineListener(event: Events::loadClassMetadata)]
-class PrecisionListener
+readonly class PrecisionListener
 {
     public function __construct(
-        private readonly Inflector $inflector,
+        private Inflector $inflector,
     ) {
     }
 
@@ -28,28 +30,53 @@ class PrecisionListener
         $cm = $eventArgs->getClassMetadata();
 
         foreach ($cm->getReflectionClass()->getProperties() as $property) {
-            $ormColumn = $property->getAttributes(ORM\Column::class);
-            if (empty($ormColumn)) {
-                continue;
-            }
-            $ormColumn = $ormColumn[0]->newInstance();
-            /** @var ORM\Column $ormColumn */
-            $name = $ormColumn->name;
-            if ($name === null || $name === '') {
-                $name = $property->getName();
-                $name = $this->inflector->toSnakeCase($name);
-            }
-            if (empty($name)) {
-                continue;
-            }
+            $this->processPrecisionProperty($cm, $property);
+        }
+    }
 
-            // 特别处理一次带精度的字段
-            if (Types::DECIMAL === $ormColumn->type && isset($cm->fieldMappings[$name])) {
-                $precisionColumn = $property->getAttributes(PrecisionColumn::class);
-                if (!empty($precisionColumn)) {
-                    $cm->fieldMappings[$name]['scale'] = intval($_ENV['DEFAULT_PRICE_PRECISION'] ?? 2);
-                }
-            }
+    /**
+     * @param ORM\ClassMetadata<object> $cm
+     */
+    private function processPrecisionProperty(ORM\ClassMetadata $cm, \ReflectionProperty $property): void
+    {
+        $ormColumn = $property->getAttributes(ORM\Column::class);
+        if ([] === $ormColumn) {
+            return;
+        }
+
+        $ormColumn = $ormColumn[0]->newInstance();
+        /** @var ORM\Column $ormColumn */
+        $name = $this->getFieldName($ormColumn, $property);
+        if ('' === $name) {
+            return;
+        }
+
+        $this->applyPrecisionSettings($cm, $property, $ormColumn, $name);
+    }
+
+    private function getFieldName(ORM\Column $ormColumn, \ReflectionProperty $property): string
+    {
+        $name = $ormColumn->name;
+        if (null === $name || '' === $name) {
+            $name = $property->getName();
+            $name = $this->inflector->toSnakeCase($name);
+        }
+
+        return $name;
+    }
+
+    /**
+     * @param ORM\ClassMetadata<object> $cm
+     */
+    private function applyPrecisionSettings(ORM\ClassMetadata $cm, \ReflectionProperty $property, ORM\Column $ormColumn, string $name): void
+    {
+        if (Types::DECIMAL !== $ormColumn->type || !isset($cm->fieldMappings[$name])) {
+            return;
+        }
+
+        $precisionColumn = $property->getAttributes(PrecisionColumn::class);
+        if ([] !== $precisionColumn) {
+            $cm->fieldMappings[$name]->scale = intval($_ENV['DEFAULT_PRICE_PRECISION'] ?? 2);
         }
     }
 }

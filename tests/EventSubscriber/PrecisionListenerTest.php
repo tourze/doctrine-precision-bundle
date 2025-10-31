@@ -1,50 +1,68 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\DoctrinePrecisionBundle\Tests\EventSubscriber;
 
-use PHPUnit\Framework\TestCase;
-use Tourze\DoctrinePrecisionBundle\Attribute\PrecisionColumn;
+use BizUserBundle\Entity\BizUser;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
+use Doctrine\ORM\Mapping as ORM;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\DoctrinePrecisionBundle\EventSubscriber\PrecisionListener;
-use Yiisoft\Strings\Inflector;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractEventSubscriberTestCase;
 
-class PrecisionListenerTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(PrecisionListener::class)]
+#[RunTestsInSeparateProcesses]
+#[Group('skip-database-setup')]
+final class PrecisionListenerTest extends AbstractEventSubscriberTestCase
 {
-    public function testPrecisionListenerWithDefaultPrecision(): void
+    protected function onSetUp(): void
     {
-        // 设置环境变量
-        $_ENV['DEFAULT_PRICE_PRECISION'] = '2';
+    }
 
-        // 创建实例并测试方法
-        $inflector = new Inflector();
-        $listener = new PrecisionListener($inflector);
+    public function testLoadClassMetadata(): void
+    {
+        $em = self::getEntityManager();
+        $cm = $em->getClassMetadata(BizUser::class);
+        $eventArgs = new LoadClassMetadataEventArgs($cm, $em);
+        $listener = self::getService(PrecisionListener::class);
 
-        // 验证监听器已创建
+        $listener->loadClassMetadata($eventArgs);
+
         $this->assertInstanceOf(PrecisionListener::class, $listener);
     }
 
-    public function testPrecisionListenerWithCustomPrecision(): void
+    #[DataProvider('fieldNameDataProvider')]
+    public function testFieldNameConversion(string $propertyName, ?string $columnName, string $expectedFieldName): void
     {
-        // 设置自定义环境变量
-        $_ENV['DEFAULT_PRICE_PRECISION'] = '3';
+        $listener = self::getService(PrecisionListener::class);
+        $method = new \ReflectionMethod($listener, 'getFieldName');
 
-        // 创建实例并测试
-        $inflector = new Inflector();
-        $listener = new PrecisionListener($inflector);
+        $ormColumn = new ORM\Column(name: $columnName, type: Types::DECIMAL);
+        $property = new \ReflectionProperty(TestEntity::class, $propertyName);
 
-        // 验证监听器已创建
-        $this->assertInstanceOf(PrecisionListener::class, $listener);
+        $result = $method->invoke($listener, $ormColumn, $property);
+
+        $this->assertEquals($expectedFieldName, $result);
     }
 
-    public function testAttributeAnnotation(): void
+    /**
+     * @return array<string, array{string, string|null, string}>
+     */
+    public static function fieldNameDataProvider(): array
     {
-        // 测试属性注解配置
-        $reflectionClass = new \ReflectionClass(PrecisionColumn::class);
-        $attributes = $reflectionClass->getAttributes(\Attribute::class);
-
-        $this->assertCount(1, $attributes);
-        $attribute = $attributes[0]->newInstance();
-
-        // 验证属性可以应用于类属性
-        $this->assertEquals(\Attribute::TARGET_PROPERTY, $attribute->flags);
+        return [
+            'explicit column name' => ['customPriceField', 'custom_price', 'custom_price'],
+            'camelCase to snake_case' => ['customPriceField', null, 'custom_price_field'],
+            'simple property name' => ['priceAmount', null, 'price_amount'],
+            'empty column name' => ['priceAmount', '', 'price_amount'],
+        ];
     }
 }

@@ -1,29 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\DoctrinePrecisionBundle\Tests\DependencyInjection;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Tourze\DoctrinePrecisionBundle\DependencyInjection\DoctrinePrecisionExtension;
 use Tourze\DoctrinePrecisionBundle\EventSubscriber\PrecisionListener;
+use Tourze\PHPUnitSymfonyUnitTest\AbstractDependencyInjectionExtensionTestCase;
 use Yiisoft\Strings\Inflector;
 
-class DoctrinePrecisionExtensionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(DoctrinePrecisionExtension::class)]
+final class DoctrinePrecisionExtensionTest extends AbstractDependencyInjectionExtensionTestCase
 {
     public function testExtensionLoadsServices(): void
     {
-        // 创建容器
         $container = new ContainerBuilder();
-
-        // 创建扩展
+        $container->setParameter('kernel.environment', 'test');
         $extension = new DoctrinePrecisionExtension();
 
-        // 测试加载扩展
         $extension->load([], $container);
 
-        // 验证核心服务是否已注册
         $this->assertTrue($container->hasDefinition(Inflector::class));
-        $this->assertTrue($container->hasDefinition(PrecisionListener::class)
-            || $container->hasDefinition('Tourze\DoctrinePrecisionBundle\EventSubscriber\PrecisionListener'));
+        $this->assertTrue($container->hasDefinition(PrecisionListener::class));
     }
 }

@@ -1,21 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\DoctrinePrecisionBundle\Tests;
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\DoctrinePrecisionBundle\DoctrinePrecisionBundle;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractBundleTestCase;
 
-class DoctrinePrecisionBundleTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(DoctrinePrecisionBundle::class)]
+#[RunTestsInSeparateProcesses]
+#[Group('skip-database-setup')]
+final class DoctrinePrecisionBundleTest extends AbstractBundleTestCase
 {
-    public function testBundleInstance(): void
-    {
-        $bundle = new DoctrinePrecisionBundle();
-
-        // 测试是否继承自Bundle基类
-        $this->assertInstanceOf(Bundle::class, $bundle);
-
-        // 测试是否为指定的类
-        $this->assertInstanceOf(DoctrinePrecisionBundle::class, $bundle);
-    }
 }

@@ -1,19 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\DoctrinePrecisionBundle\Tests\Attribute;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Tourze\DoctrinePrecisionBundle\Attribute\PrecisionColumn;
 
-class PrecisionColumnTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(PrecisionColumn::class)]
+final class PrecisionColumnTest extends TestCase
 {
     public function testPrecisionColumnAttribute(): void
     {
-        // 测试属性可以被实例化
-        $attribute = new PrecisionColumn();
-        $this->assertInstanceOf(PrecisionColumn::class, $attribute);
-
-        // 测试属性被正确设置为类属性目标
         $reflectionClass = new \ReflectionClass(PrecisionColumn::class);
         $attributes = $reflectionClass->getAttributes(\Attribute::class);
 
