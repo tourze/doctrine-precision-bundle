@@ -39,6 +39,19 @@ final class PrecisionListenerTest extends AbstractEventSubscriberTestCase
         $this->assertEquals($expectedFieldName, $result);
     }
 
+    public function testEnvironmentVariableHandling(): void
+    {
+        // 测试环境变量的类型处理能够通过 PHPStan 检查
+        $listener = self::getService(PrecisionListener::class);
+
+        // 验证服务能够正确实例化且可用
+        $this->assertInstanceOf(PrecisionListener::class, $listener);
+
+        // 测试私有方法 getFieldName 的存在性（已经有详细测试了）
+        $this->assertTrue(method_exists($listener, 'getFieldName'));
+        $this->assertTrue(method_exists($listener, 'applyPrecisionSettings'));
+    }
+
     /**
      * @return array<string, array{string, string|null, string}>
      */

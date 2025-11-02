@@ -76,7 +76,9 @@ readonly class PrecisionListener
 
         $precisionColumn = $property->getAttributes(PrecisionColumn::class);
         if ([] !== $precisionColumn) {
-            $cm->fieldMappings[$name]->scale = intval($_ENV['DEFAULT_PRICE_PRECISION'] ?? 2);
+            $envPrecision = $_ENV['DEFAULT_PRICE_PRECISION'] ?? '2';
+            assert(is_string($envPrecision) || is_int($envPrecision) || is_float($envPrecision));
+            $cm->fieldMappings[$name]->scale = intval($envPrecision);
         }
     }
 }
