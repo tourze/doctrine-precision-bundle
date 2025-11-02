@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tourze\DoctrinePrecisionBundle\Tests\EventSubscriber;
 
 use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Mapping as ORM;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -46,10 +47,26 @@ final class PrecisionListenerTest extends AbstractEventSubscriberTestCase
 
         // 验证服务能够正确实例化且可用
         $this->assertInstanceOf(PrecisionListener::class, $listener);
+    }
 
-        // 测试私有方法 getFieldName 的存在性（已经有详细测试了）
-        $this->assertTrue(method_exists($listener, 'getFieldName'));
-        $this->assertTrue(method_exists($listener, 'applyPrecisionSettings'));
+    public function testLoadClassMetadata(): void
+    {
+        $listener = self::getService(PrecisionListener::class);
+
+        // 使用反射验证 loadClassMetadata 方法存在且为公共方法
+        $method = new \ReflectionMethod($listener, 'loadClassMetadata');
+        $this->assertTrue($method->isPublic());
+
+        // 验证方法参数类型正确
+        $params = $method->getParameters();
+        $this->assertCount(1, $params);
+        $this->assertEquals('eventArgs', $params[0]->getName());
+
+        // 验证返回类型为 void
+        $returnType = $method->getReturnType();
+        $this->assertNotNull($returnType);
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('void', $returnType->getName());
     }
 
     /**
