@@ -11,12 +11,12 @@ class TestEntity
 {
     #[ORM\Column(type: 'decimal')]
     #[PrecisionColumn]
-    private null $priceAmount = null; // @phpstan-ignore property.onlyWritten
+    private null $priceAmount = null;
 
     #[ORM\Column(type: 'decimal', name: 'custom_price')]
     #[PrecisionColumn]
-    private null $customPriceField = null; // @phpstan-ignore property.onlyWritten
+    private null $customPriceField = null;
 
     #[ORM\Column(type: 'string')]
-    private null $normalField = null; // @phpstan-ignore property.onlyWritten
+    private null $normalField = null;
 }
